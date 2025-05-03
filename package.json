@@ -1,0 +1,83 @@
+{
+  "name": "mcp-simple-gateway",
+  "version": "0.0.1",
+  "description": "MCP Simple Gateway",
+  "author": "Denny K",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "mcp-simple-gateway": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "node dist/index.js",
+    "start:cli": "node dist/cli.js",
+    "dev": "tsx --watch ./src/index.ts",
+    "dev:cli": "tsx --watch ./src/cli.ts",
+    "build": "npm run clean && npm run generate:validators && npm run build:package",
+    "build:package": "tsc --project tsconfig.build.json && tsc-alias -p tsconfig.build.json --resolve-full-paths",
+    "clean": "rimraf ./dist",
+    "lint": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "validate": "npm run typecheck && npm run lint",
+    "generate:validators": "ts-to-zod --all",
+    "prepare": "husky || true",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@commander-js/extra-typings": "^13.1.0",
+    "@fastify/auth": "^5.0.2",
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.3.2",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "zod": "^3.24.3",
+    "zod-validation-error": "^3.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "@types/node": "^22.15.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1",
+    "prettier": "^3.2.5",
+    "rimraf": "^6.0.1",
+    "ts-to-zod": "^3.15.0",
+    "tsc-alias": "^1.8.15",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^7.0.0"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "multi-mcp",
+    "mcp-gateway",
+    "mcp-proxy",
+    "mcp-aggregator"
+  ],
+  "packageManager": "npm@11.3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denwakeup/mcp-simple-gateway.git"
+  }
+}

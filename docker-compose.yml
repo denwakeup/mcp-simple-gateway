@@ -1,0 +1,13 @@
+services:
+  mcp-simple-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      - CONFIG_PATH=/app/config.json
+    volumes:
+      - ./config.json.example:/app/config.json
+      - ./README.md:/app/files/README.md
+    restart: on-failure
