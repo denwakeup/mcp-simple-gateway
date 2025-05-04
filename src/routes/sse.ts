@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 
 import { ConfigManager, McpProxySessionManager } from '../services';
-import { createMcpServerAuthVerifier, createSSEProxy } from '../utils';
+import { createMcpServerAuthVerifier, createSSEProxy } from '../helpers';
 
 interface SSEOptions {
   configManager: ConfigManager;
@@ -35,11 +35,7 @@ export const sseRoutes: FastifyPluginAsync<SSEOptions> = async (
           return reply.status(404).send('Server not found');
         }
 
-        const mcpProxy = createSSEProxy({
-          serverName,
-          serverConfig,
-          res: reply.raw,
-        });
+        const mcpProxy = createSSEProxy({ serverName, serverConfig, reply });
 
         try {
           await mcpProxy.start();

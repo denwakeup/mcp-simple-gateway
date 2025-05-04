@@ -1,4 +1,4 @@
-import { createValidator } from '../utils/createValidator';
+import { createValidator } from '../helpers/createValidator';
 
 import { configSchema } from './__generated/config';
 
