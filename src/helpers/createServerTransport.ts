@@ -1,4 +1,7 @@
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import {
+  getDefaultEnvironment,
+  StdioClientTransport,
+} from '@modelcontextprotocol/sdk/client/stdio.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 
 import { isSSEConfig, isStdioConfig } from '../guards';
@@ -33,7 +36,10 @@ export const createServerTransport = (serverConfig: McpServerProxyConfig) => {
     return new StdioClientTransport({
       command: serverConfig.command,
       args: serverConfig.args,
-      env: serverConfig.env,
+      env: {
+        ...getDefaultEnvironment(),
+        ...serverConfig.env,
+      },
       cwd: serverConfig.cwd,
     });
   }
