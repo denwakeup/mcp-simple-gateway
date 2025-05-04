@@ -1,3 +1,5 @@
+[![npm](https://img.shields.io/npm/v/mcp-simple-gateway)](https://www.npmjs.com/package/mcp-simple-gateway)
+
 # MCP Simple Gateway
 
 MCP Simple Gateway is a proxy server for Model Context Protocol (MCP) that allows you to aggregate and manage multiple MCP servers through a single interface.

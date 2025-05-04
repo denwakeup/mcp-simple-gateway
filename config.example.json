@@ -3,7 +3,7 @@
     "options": {
       "logLevel": "debug",
       "logPretty": true,
-      "authTokens": ["123"]
+      "authTokens": ["proxy-auth-token"]
     }
   },
   "mcpServers": {
@@ -11,7 +11,7 @@
       "command": "uvx",
       "args": ["mcp-server-time", "--local-timezone=Europe/Moscow"],
       "proxyOptions": {
-        "authTokens": ["321"]
+        "authTokens": ["server-specific-proxy-auth-token"]
       }
     },
     "filesystem": {

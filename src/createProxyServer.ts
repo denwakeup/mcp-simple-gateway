@@ -3,9 +3,9 @@ import fastifyAuth from '@fastify/auth';
 
 import { McpProxySessionManager } from './services';
 import { sseRoutes } from './routes/sse';
-import { createConfigManager } from './utils/createConfigManager';
+import { createConfigManager } from './helpers/createConfigManager';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
-import { createLogger } from './utils';
+import { createLogger } from './helpers';
 
 interface CreateProxyServerParams {
   configPath: string;

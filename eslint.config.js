@@ -35,6 +35,7 @@ export default [
         },
       ],
       'import/newline-after-import': 'error',
+      'no-console': 'error',
     },
   },
 ];

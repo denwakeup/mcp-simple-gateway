@@ -7,18 +7,25 @@ import { McpServerProxyConfig } from '../types/config';
 export const createServerTransport = (serverConfig: McpServerProxyConfig) => {
   if (isSSEConfig(serverConfig)) {
     const url = new URL(serverConfig.url);
-    let headers: Headers | undefined;
+    const headers: Record<string, string> = {};
 
     if (serverConfig.headers) {
-      headers = new Headers();
-
-      Object.entries(serverConfig.headers).forEach(([key, value]) => {
-        headers?.set(key, value);
-      });
+      for (const [key, value] of Object.entries(serverConfig.headers)) {
+        headers[key] = value;
+      }
     }
 
     return new SSEClientTransport(url, {
-      requestInit: { headers },
+      eventSourceInit: {
+        fetch: (url, init) =>
+          globalThis.fetch(url, {
+            ...init,
+            headers: {
+              ...init?.headers,
+              ...headers,
+            },
+          }),
+      },
     });
   }
 
