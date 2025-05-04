@@ -18,6 +18,22 @@ MCP Simple Gateway is a proxy server for Model Context Protocol (MCP) that allow
 npx mcp-simple-gateway --config config.json
 ```
 
+### Running via Docker Compose
+
+Example `docker-compose.yml`:
+
+```yaml
+services:
+  mcp-gateway:
+    image: ghcr.io/denwakeup/mcp-simple-gateway:latest
+    volumes:
+      - ./config.json:/app/config.json
+    ports:
+      - '3000:3000'
+    environment:
+      - CONFIG_PATH=/app/config.json
+```
+
 ## Configuration
 
 Example configuration file (`config.json`):
