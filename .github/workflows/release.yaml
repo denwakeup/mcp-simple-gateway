@@ -55,6 +55,14 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "npm_version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ steps.get_version.outputs.version }}
+          git push origin ${{ steps.get_version.outputs.version }}
 
       - name: Get changelog
         id: changelog
@@ -103,13 +111,6 @@ jobs:
             org.opencontainers.image.description=MCP Simple Gateway
             org.opencontainers.image.licenses=MIT
 
-      - name: Create Git tag
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag ${{ steps.get_version.outputs.version }}
-          git push origin ${{ steps.get_version.outputs.version }}
-
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
@@ -121,7 +122,7 @@ jobs:
 
             ## NPM Package
             ```bash
-            npm install mcp-simple-gateway@${{ steps.get_version.outputs.version }}
+            npm install mcp-simple-gateway
             ```
 
             ## Docker Image

@@ -1,6 +1,6 @@
 {
   "name": "mcp-simple-gateway",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "MCP Simple Gateway",
   "author": "Denny K",
   "type": "module",
