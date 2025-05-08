@@ -1,3 +1,4 @@
+import { CorsOptions } from 'cors';
 import { LevelWithSilentOrString } from 'pino';
 
 export enum TransportType {
@@ -10,11 +11,10 @@ export interface CommonProxyOptions {
   authTokens?: string[];
 }
 
-export interface ProxyServerConfig {
-  options?: CommonProxyOptions & {
-    logLevel?: LevelWithSilentOrString;
-    logPretty?: boolean;
-  };
+export interface ProxyServerConfig extends CommonProxyOptions {
+  logLevel?: LevelWithSilentOrString;
+  logPretty?: boolean;
+  cors?: CorsOptions;
 }
 
 export interface McpStdioServerConfig {

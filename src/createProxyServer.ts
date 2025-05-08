@@ -1,54 +1,48 @@
-import fastify from 'fastify';
-import fastifyAuth from '@fastify/auth';
+import express from 'express';
+import cors from 'cors';
 
 import { McpProxySessionManager } from './services';
-import { sseRoutes } from './routes/sse';
+import { createSseRoutes } from './routes/sse';
 import { createConfigManager } from './helpers/createConfigManager';
-import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { createLogger } from './helpers';
 
 interface CreateProxyServerParams {
   configPath: string;
-  host: string | undefined;
-  port: number | undefined;
 }
 
-export const createProxyServer = ({
-  configPath,
-  host = DEFAULT_HOST,
-  port = DEFAULT_PORT,
-}: CreateProxyServerParams) => {
+export const createProxyServer = ({ configPath }: CreateProxyServerParams) => {
   const configManager = createConfigManager(configPath);
   const proxySetting = configManager.getProxySettings();
 
   const sessionManager = new McpProxySessionManager();
   const logger = createLogger({
-    logLevel: proxySetting.options?.logLevel,
-    logPretty: proxySetting.options?.logPretty,
+    logLevel: proxySetting.logLevel,
+    logPretty: proxySetting.logPretty,
   });
 
-  const server = fastify({
-    loggerInstance: logger,
-    disableRequestLogging: true,
-  });
+  const server = express();
 
-  server.register(fastifyAuth).register(sseRoutes, {
-    configManager,
-    sessionManager,
-  });
+  if (proxySetting.cors) {
+    server.use(cors(proxySetting.cors));
+  }
+
+  server.use(express.json()).use(
+    createSseRoutes({
+      configManager,
+      sessionManager,
+      logger,
+    })
+  );
 
   return {
-    start: async () => {
-      try {
-        await server.listen({
-          port,
-          host,
-        });
-      } catch (error) {
-        logger.error(error);
+    listen: (port: number, host: string) =>
+      server.listen(port, host, (error) => {
+        if (error) {
+          logger.error(error);
+          process.exit(1);
+        }
 
-        process.exit(1);
-      }
-    },
+        logger.info(`Server is running on ${host}:${port}`);
+      }),
   };
 };

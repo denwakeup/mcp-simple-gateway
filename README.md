@@ -27,7 +27,7 @@ Example `docker-compose.yml`:
 ```yaml
 services:
   mcp-gateway:
-    # platform: linux/amd64 # For Apple Silicon Users
+    platform: linux/amd64 # For Apple Silicon Users
     image: ghcr.io/denwakeup/mcp-simple-gateway:latest
     volumes:
       - ./config.json:/app/config.json
@@ -44,10 +44,11 @@ Example configuration file (`config.json`):
 ```json
 {
   "proxyServer": {
-    "options": {
-      "logLevel": "debug",
-      "logPretty": true,
-      "authTokens": ["your-auth-token"]
+    "logLevel": "debug",
+    "logPretty": true,
+    "authTokens": ["your-auth-token"],
+    "cors": {
+      "origin": true
     }
   },
   "mcpServers": {
@@ -77,6 +78,7 @@ Example configuration file (`config.json`):
   - `logLevel`: Logging level (debug, info, warn, error)
   - `logPretty`: Log formatting
   - `authTokens`: Array of authentication tokens (used as default for all servers)
+  - `cors`: CORS [configuration](https://expressjs.com/id/resources/middleware/cors.html#configuration-options) options (optional)
 
 - `mcpServers`: MCP servers configuration
   - `[serverName]`:
@@ -100,8 +102,8 @@ http://localhost:3000/echo/sse
 
 ## Roadmap
 
-- [ ] CORS support
-- [ ] Streamable HTTP support
+- [x] CORS support
+- [x] Streamable HTTP support
 
 ## License
 
