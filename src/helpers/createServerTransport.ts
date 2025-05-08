@@ -3,20 +3,36 @@ import {
   StdioClientTransport,
 } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
-import { isSSEConfig, isStdioConfig } from '../guards';
-import { McpServerProxyConfig } from '../types/config';
+import { isSSEConfig, isStdioConfig, isStreamableHTTPConfig } from '../guards';
+import {
+  McpServerProxyConfig,
+  McpSSEServerConfig,
+  McpStreamableHTTPServerConfig,
+} from '../types/config';
 
-export const createServerTransport = (serverConfig: McpServerProxyConfig) => {
+const buildHeaders = (
+  config: McpSSEServerConfig | McpStreamableHTTPServerConfig
+) => {
+  const headers: Record<string, string> = {};
+
+  if (config.headers) {
+    for (const [key, value] of Object.entries(config.headers)) {
+      headers[key] = value;
+    }
+  }
+
+  return headers;
+};
+
+export const createServerTransport = (
+  serverConfig: McpServerProxyConfig
+): Transport => {
   if (isSSEConfig(serverConfig)) {
     const url = new URL(serverConfig.url);
-    const headers: Record<string, string> = {};
-
-    if (serverConfig.headers) {
-      for (const [key, value] of Object.entries(serverConfig.headers)) {
-        headers[key] = value;
-      }
-    }
+    const headers = buildHeaders(serverConfig);
 
     return new SSEClientTransport(url, {
       eventSourceInit: {
@@ -28,6 +44,17 @@ export const createServerTransport = (serverConfig: McpServerProxyConfig) => {
               ...headers,
             },
           }),
+      },
+    });
+  }
+
+  if (isStreamableHTTPConfig(serverConfig)) {
+    const url = new URL(serverConfig.url);
+    const headers = buildHeaders(serverConfig);
+
+    return new StreamableHTTPClientTransport(url, {
+      requestInit: {
+        headers,
       },
     });
   }
