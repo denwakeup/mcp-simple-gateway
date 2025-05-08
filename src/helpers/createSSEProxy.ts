@@ -1,6 +1,6 @@
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import { FastifyReply } from 'fastify';
 import { BaseLogger } from 'pino';
+import { Response } from 'express';
 
 import { SSEMcpProxy } from '../services/SSEMcpProxy';
 import { McpServerProxyConfig } from '../types/config';
@@ -10,14 +10,14 @@ import { createServerTransport } from './createServerTransport';
 interface Params {
   serverName: string;
   serverConfig: McpServerProxyConfig;
-  reply: FastifyReply;
+  response: Response;
   logger?: BaseLogger;
 }
 
 export const createSSEProxy = ({
   serverName,
   serverConfig,
-  reply,
+  response,
   logger,
 }: Params) => {
   const serverTransport = createServerTransport(serverConfig);
@@ -25,7 +25,7 @@ export const createSSEProxy = ({
   const mcpProxy = new SSEMcpProxy({
     logger,
     serverTransport,
-    proxyTransport: new SSEServerTransport(`${serverName}/messages`, reply.raw),
+    proxyTransport: new SSEServerTransport(`${serverName}/messages`, response),
   });
 
   return mcpProxy;

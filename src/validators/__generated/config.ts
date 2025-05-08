@@ -57,15 +57,12 @@ export const mcpServerProxyConfigSchema = z.union([
 
 const levelWithSilentOrStringSchema = z.any();
 
-export const proxyServerConfigSchema = z.object({
-  options: commonProxyOptionsSchema
-    .and(
-      z.object({
-        logLevel: levelWithSilentOrStringSchema.optional(),
-        logPretty: z.boolean().optional(),
-      })
-    )
-    .optional(),
+const corsOptionsSchema = z.any();
+
+export const proxyServerConfigSchema = commonProxyOptionsSchema.extend({
+  logLevel: levelWithSilentOrStringSchema.optional(),
+  logPretty: z.boolean().optional(),
+  cors: corsOptionsSchema.optional(),
 });
 
 export const configSchema = z.object({

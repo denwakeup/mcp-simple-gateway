@@ -1,9 +1,10 @@
 {
   "proxyServer": {
-    "options": {
-      "logLevel": "debug",
-      "logPretty": true,
-      "authTokens": ["proxy-auth-token"]
+    "logLevel": "debug",
+    "logPretty": true,
+    "authTokens": ["proxy-auth-token"],
+    "cors": {
+      "origin": true
     }
   },
   "mcpServers": {

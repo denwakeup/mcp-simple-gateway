@@ -33,6 +33,6 @@ export class ConfigManager {
     const specificOptions =
       this.getMcpServerProxyConfig(serverName)?.proxyOptions;
 
-    return specificOptions ?? this.getProxySettings().options;
+    return specificOptions ?? this.getProxySettings();
   }
 }

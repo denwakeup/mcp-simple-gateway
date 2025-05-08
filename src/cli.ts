@@ -13,14 +13,12 @@ const bootstrap = () => {
     .requiredOption('-c, --config <path>', 'Path to the config file')
     .option('-h, --host <host>', 'Host to listen on', DEFAULT_HOST)
     .option('-p, --port <port>', 'Port to listen on', String(DEFAULT_PORT))
-    .action(async (options) => {
+    .action((options) => {
       const proxyServer = createProxyServer({
         configPath: options.config,
-        host: options.host,
-        port: options.port ? Number(options.port) : undefined,
       });
 
-      await proxyServer.start();
+      proxyServer.listen(Number(options.port), options.host);
     })
     .parse();
 };

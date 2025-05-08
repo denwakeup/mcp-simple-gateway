@@ -8,7 +8,13 @@ export const createConfigManager = (configPath: string) => {
     throw new Error(`Configuration file not found at path: ${configPath}`);
   }
 
-  const configJson = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  let configJson: unknown;
+
+  try {
+    configJson = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    throw new Error(`Configuration file contains invalid JSON: ${configPath}`);
+  }
 
   const config = validateConfig(configJson);
 

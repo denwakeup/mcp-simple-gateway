@@ -1,6 +1,6 @@
 services:
   mcp-simple-gateway:
-    # platform: linux/amd64 # For Apple Silicon Users
+    platform: linux/amd64 # For Apple Silicon Users
     image: ghcr.io/denwakeup/mcp-simple-gateway:latest
     ports:
       - 3000:3000

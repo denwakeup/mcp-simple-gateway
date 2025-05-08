@@ -1,98 +1,84 @@
-import { FastifyPluginAsync } from 'fastify';
+import express from 'express';
+import { BaseLogger } from 'pino';
 
 import { ConfigManager, McpProxySessionManager } from '../services';
-import { createMcpServerAuthVerifier, createSSEProxy } from '../helpers';
+import { createAuthMiddleware, createSSEProxy } from '../helpers';
 
 interface SSEOptions {
   configManager: ConfigManager;
   sessionManager: McpProxySessionManager;
+  logger: BaseLogger;
 }
 
-interface CommonRouteParams {
-  Params: { serverName: string };
-}
+export const createSseRoutes = (options: SSEOptions) => {
+  const { configManager, sessionManager, logger } = options;
 
-export const sseRoutes: FastifyPluginAsync<SSEOptions> = async (
-  server,
-  options
-) => {
-  const { configManager, sessionManager } = options;
+  const router = express.Router();
+  const authMiddleware = createAuthMiddleware(configManager);
 
-  server
-    .addHook(
-      'preHandler',
-      server.auth([createMcpServerAuthVerifier({ configManager })])
-    )
-    .route<CommonRouteParams>({
-      method: 'GET',
-      url: '/:serverName/sse',
+  router
+    .get('/:serverName/sse', authMiddleware, async (request, response) => {
+      const serverName = request.params.serverName;
+      const serverConfig = configManager.getMcpServerConfig(serverName);
 
-      handler: async (request, reply) => {
-        const serverName = request.params.serverName;
-        const serverConfig = configManager.getMcpServerConfig(serverName);
+      if (!serverConfig) {
+        response.status(404).send('Server not found');
+        return;
+      }
 
-        if (!serverConfig) {
-          return reply.status(404).send('Server not found');
-        }
+      const mcpProxy = createSSEProxy({
+        serverName,
+        serverConfig,
+        response,
+        logger,
+      });
 
-        const mcpProxy = createSSEProxy({
-          serverName,
-          serverConfig,
-          reply,
-          logger: request.log,
-        });
+      try {
+        await mcpProxy.start();
+      } catch (error) {
+        await mcpProxy.close();
 
-        try {
-          await mcpProxy.start();
-        } catch (error) {
-          await mcpProxy.close();
+        logger.error(error, 'Failed to start MCP proxy');
 
-          request.log.error(error, 'Failed to start MCP proxy');
+        response.status(500).send('Failed to start MCP proxy');
+        return;
+      }
 
-          return reply.status(500).send('Failed to start MCP proxy');
-        }
-
-        reply.raw.on('close', async () => {
-          sessionManager.removeSession({
-            serverName,
-            sessionId: mcpProxy.sessionId,
-          });
-
-          await mcpProxy.close();
-        });
-
-        sessionManager.addSession({
+      response.on('close', async () => {
+        sessionManager.removeSession({
           serverName,
           sessionId: mcpProxy.sessionId,
-          mcpProxy,
         });
 
-        return reply;
-      },
+        await mcpProxy.close();
+      });
+
+      sessionManager.addSession({
+        serverName,
+        sessionId: mcpProxy.sessionId,
+        mcpProxy,
+      });
     })
-    .route<
-      CommonRouteParams & {
-        Querystring: { sessionId: string };
-      }
-    >({
-      method: 'POST',
-      url: '/:serverName/messages',
-
-      handler: async (request, reply) => {
+    .post(
+      '/:serverName/messages',
+      authMiddleware,
+      async (request, response) => {
         const serverName = request.params.serverName;
-        const sessionId = request.query.sessionId;
-        const mcpProxy = sessionManager.getSession({
-          serverName,
-          sessionId,
-        });
+        const sessionId = String(request.query.sessionId);
+        const mcpProxy = sessionId
+          ? sessionManager.getSession({
+              serverName,
+              sessionId,
+            })
+          : null;
 
         if (mcpProxy) {
-          await mcpProxy.handleMessage(request.raw, reply.raw, request.body);
-
-          return reply;
+          await mcpProxy.handleMessage(request, response, request.body);
         } else {
-          return reply.status(400).send('No transport found for sessionId');
+          response.status(400).send('No transport found for sessionId');
         }
-      },
-    });
+      }
+    );
+
+  return router;
 };

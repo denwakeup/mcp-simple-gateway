@@ -1,3 +1,3 @@
-export * from './ConfigManager.js';
-export * from './McpProxySessionManager.js';
-export * from './SSEMcpProxy.js';
+export * from './ConfigManager';
+export * from './McpProxySessionManager';
+export * from './SSEMcpProxy';
