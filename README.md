@@ -27,6 +27,7 @@ Example `docker-compose.yml`:
 ```yaml
 services:
   mcp-gateway:
+    # platform: linux/amd64 # For Apple Silicon Users
     image: ghcr.io/denwakeup/mcp-simple-gateway:latest
     volumes:
       - ./config.json:/app/config.json
