@@ -1,24 +1,28 @@
 import { IncomingMessage } from 'http';
 import { ServerResponse } from 'http';
 
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { BaseLogger } from 'pino';
 import { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+
+import { getRPCErrorFromError } from '../helpers';
 
 export interface McpProxyInitParams {
-  serverTransport: StdioClientTransport | SSEClientTransport;
+  serverTransport: Transport;
   proxyTransport: SSEServerTransport;
+  logger?: BaseLogger;
 }
 
 export class SSEMcpProxy {
-  private serverTransport: StdioClientTransport | SSEClientTransport;
+  private serverTransport: Transport;
   private proxyTransport: SSEServerTransport;
+  private logger?: BaseLogger;
 
   constructor(params: McpProxyInitParams) {
     this.serverTransport = params.serverTransport;
     this.proxyTransport = params.proxyTransport;
+    this.logger = params.logger;
   }
 
   get sessionId() {
@@ -33,20 +37,27 @@ export class SSEMcpProxy {
       this.proxyTransport.send(msg);
     };
 
-    this.serverTransport.onerror = (err) => {
-      this.proxyTransport.send({
-        jsonrpc: '2.0',
-        error: {
-          code: ErrorCode.InternalError,
-          message: err.message,
-          data: err.stack,
-        },
-        id: 0,
-      });
+    this.serverTransport.onerror = async (err) => {
+      const rpcError = getRPCErrorFromError(err);
+
+      try {
+        await this.proxyTransport.send(rpcError);
+      } catch (error) {
+        this.logger?.error(error, 'Failed to send error');
+      }
     };
 
-    this.proxyTransport.onmessage = (msg) => {
-      this.serverTransport.send(msg);
+    this.proxyTransport.onmessage = async (msg) => {
+      try {
+        await this.serverTransport.send(msg);
+      } catch (error: unknown) {
+        const rpcError = getRPCErrorFromError(error);
+
+        await this.proxyTransport.send({
+          ...rpcError,
+          id: rpcError.id || (msg as { id: string }).id,
+        });
+      }
     };
   };
 
@@ -61,9 +72,7 @@ export class SSEMcpProxy {
   };
 
   close = async () => {
-    await Promise.all([
-      this.serverTransport.close(),
-      this.proxyTransport.close(),
-    ]);
+    await this.serverTransport.close();
+    await this.proxyTransport.close();
   };
 }

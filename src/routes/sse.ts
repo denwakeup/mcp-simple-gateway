@@ -35,7 +35,12 @@ export const sseRoutes: FastifyPluginAsync<SSEOptions> = async (
           return reply.status(404).send('Server not found');
         }
 
-        const mcpProxy = createSSEProxy({ serverName, serverConfig, reply });
+        const mcpProxy = createSSEProxy({
+          serverName,
+          serverConfig,
+          reply,
+          logger: request.log,
+        });
 
         try {
           await mcpProxy.start();

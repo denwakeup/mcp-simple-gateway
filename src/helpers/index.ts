@@ -4,3 +4,4 @@ export * from './createSSEProxy';
 export * from './createServerTransport';
 export * from './createMcpServerAuthVerifier';
 export * from './createLogger';
+export * from './errors';
